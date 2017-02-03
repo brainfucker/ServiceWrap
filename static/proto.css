@@ -1,0 +1,44 @@
+const http = require('http');
+const templates = require('./templates');
+
+class ServiceWrap {
+  constructor(opts) {
+    const hostname = opts.hostname || '0.0.0.0';
+    const port = opts.port || 3000;
+
+    this.actions = []
+
+    // Create an HTTP server
+    this.srv = http.createServer((req, res) => {
+      res.writeHead(200, {'Content-Type': 'text/html'});
+      var actions = this.renderActions()
+      res.end(templates.main(actions));
+    });
+    this.srv.listen(port, hostname)
+    console.log(`Server started at ${hostname}:${port}`)
+  }
+
+  file(cb) {
+    this.actions.push({type: 'file'})
+
+  }
+
+  renderActions() {
+    var out = ''
+    for(var i in this.actions) {
+      out += this.renderActionRow(i, this.actions[i])
+    }
+    return out
+  }
+
+  renderActionRow(num, act) {
+    switch(act.type) {
+      case 'file':
+        return templates.file(num)
+      default:
+        throw new Error('action type '+act.type+' not supported')
+    }
+  }
+}
+
+module.exports = ServiceWrap
